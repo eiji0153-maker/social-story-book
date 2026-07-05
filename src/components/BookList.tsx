@@ -2,7 +2,8 @@ import type { Book } from "../types";
 
 type Props = {
   books: Book[];
-  onCreate: () => void;
+  onStartNew: () => void;
+  onCreateEmpty: () => void;
   onOpen: (id: string) => void;
   onDelete: (id: string) => void;
 };
@@ -14,16 +15,29 @@ function formatDate(ms: number): string {
   ).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-export default function BookList({ books, onCreate, onOpen, onDelete }: Props) {
+export default function BookList({
+  books,
+  onStartNew,
+  onCreateEmpty,
+  onOpen,
+  onDelete,
+}: Props) {
   return (
     <main className="book-list" data-testid="book-list">
       <div className="toolbar">
         <button
           className="btn btn-primary btn-lg"
-          onClick={onCreate}
-          data-testid="create-book"
+          onClick={onStartNew}
+          data-testid="start-new"
         >
-          ＋ あたらしい えほんを つくる
+          🪄 テーマから絵本をつくる
+        </button>
+        <button
+          className="btn btn-lg"
+          onClick={onCreateEmpty}
+          data-testid="create-empty"
+        >
+          ＋ 白紙から作る
         </button>
       </div>
 

@@ -2,15 +2,21 @@ import { useEffect, useState } from "react";
 import type { Book } from "./types";
 import { createEmptyBook } from "./types";
 import { loadBooks, upsertBook, deleteBook } from "./storage";
+import type { AiSettings } from "./ai/config";
+import { loadSettings } from "./ai/config";
 import BookList from "./components/BookList";
 import Editor from "./components/Editor";
+import NewBook from "./components/NewBook";
+import Settings from "./components/Settings";
 
-type View = "list" | "editor";
+type View = "list" | "editor" | "newbook";
 
 export default function App() {
   const [books, setBooks] = useState<Book[]>([]);
   const [view, setView] = useState<View>("list");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [settings, setSettings] = useState<AiSettings>(loadSettings());
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     setBooks(loadBooks());
@@ -18,12 +24,26 @@ export default function App() {
 
   const editingBook = books.find((b) => b.id === editingId) ?? null;
 
-  function handleCreate() {
+  function handleCreateEmpty() {
     const book = createEmptyBook();
     const next = upsertBook(book);
     setBooks(next);
     setEditingId(book.id);
     setView("editor");
+  }
+
+  function handleStartNew() {
+    setView("newbook");
+  }
+
+  function handleGenerated(book: Book, warnings: string[]) {
+    const next = upsertBook(book);
+    setBooks(next);
+    setEditingId(book.id);
+    setView("editor");
+    if (warnings.length > 0) {
+      alert("絵本ができました。\n\n【お知らせ】\n" + warnings.join("\n"));
+    }
   }
 
   function handleOpen(id: string) {
@@ -32,13 +52,11 @@ export default function App() {
   }
 
   function handleDelete(id: string) {
-    const next = deleteBook(id);
-    setBooks(next);
+    setBooks(deleteBook(id));
   }
 
   function handleSave(book: Book) {
-    const next = upsertBook(book);
-    setBooks(next);
+    setBooks(upsertBook(book));
   }
 
   function handleBackToList() {
@@ -52,14 +70,31 @@ export default function App() {
       <header className="app-header">
         <h1>📖 SocialStory Book</h1>
         <span className="app-subtitle">ソーシャルストーリー絵本メーカー</span>
+        <button
+          className="btn header-settings"
+          onClick={() => setShowSettings(true)}
+          data-testid="open-settings"
+        >
+          ⚙ AI設定
+        </button>
       </header>
 
       {view === "list" && (
         <BookList
           books={books}
-          onCreate={handleCreate}
+          onStartNew={handleStartNew}
+          onCreateEmpty={handleCreateEmpty}
           onOpen={handleOpen}
           onDelete={handleDelete}
+        />
+      )}
+
+      {view === "newbook" && (
+        <NewBook
+          settings={settings}
+          onCreated={handleGenerated}
+          onCancel={handleBackToList}
+          onOpenSettings={() => setShowSettings(true)}
         />
       )}
 
@@ -67,8 +102,19 @@ export default function App() {
         <Editor
           key={editingBook.id}
           initialBook={editingBook}
+          settings={settings}
           onSave={handleSave}
           onBack={handleBackToList}
+        />
+      )}
+
+      {showSettings && (
+        <Settings
+          initial={settings}
+          onClose={(saved) => {
+            setSettings(saved);
+            setShowSettings(false);
+          }}
         />
       )}
     </div>

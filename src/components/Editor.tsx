@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { Book, Page } from "../types";
 import { createEmptyPage } from "../types";
+import type { AiSettings } from "../ai/config";
+import { regenerateIllustration } from "../ai/generate";
 import DrawingCanvas from "./DrawingCanvas";
 import PageStrip from "./PageStrip";
 import Preview from "./Preview";
@@ -8,15 +10,17 @@ import { exportBookToPdf } from "../pdf";
 
 type Props = {
   initialBook: Book;
+  settings: AiSettings;
   onSave: (book: Book) => void;
   onBack: () => void;
 };
 
-export default function Editor({ initialBook, onSave, onBack }: Props) {
+export default function Editor({ initialBook, settings, onSave, onBack }: Props) {
   const [book, setBook] = useState<Book>(initialBook);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   const current = book.pages[currentIndex];
 
@@ -66,6 +70,18 @@ export default function Editor({ initialBook, onSave, onBack }: Props) {
   async function handlePdf() {
     onSave(book);
     await exportBookToPdf(book);
+  }
+
+  async function handleRegenerate() {
+    setRegenerating(true);
+    try {
+      const dataUrl = await regenerateIllustration(current, settings);
+      updatePage(currentIndex, { imageDataUrl: dataUrl });
+    } catch (e) {
+      alert("イラストの生成に失敗しました: " + (e as Error).message);
+    } finally {
+      setRegenerating(false);
+    }
   }
 
   return (
@@ -127,8 +143,19 @@ export default function Editor({ initialBook, onSave, onBack }: Props) {
       />
 
       <div className="editor-page">
-        <div className="editor-page-no" data-testid="current-page-no">
-          {currentIndex + 1} / {book.pages.length} ページ
+        <div className="editor-page-head">
+          <div className="editor-page-no" data-testid="current-page-no">
+            {currentIndex + 1} / {book.pages.length} ページ
+          </div>
+          <button
+            className="btn"
+            onClick={handleRegenerate}
+            disabled={regenerating}
+            data-testid="regenerate-illustration"
+            title="このページのイラストをAI（またはキー未設定時は代替）で作り直します"
+          >
+            {regenerating ? "作成中…" : "🪄 イラストを作り直す"}
+          </button>
         </div>
         <DrawingCanvas
           pageId={current.id}

@@ -4,6 +4,7 @@ export type Page = {
   id: string;
   text: string;
   imageDataUrl: string | null; // イラスト（PNG Data URL）
+  illustrationPrompt?: string; // イラスト再生成用の説明（AI生成時に付与）
 };
 
 export type Book = {

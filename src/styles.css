@@ -342,4 +342,134 @@ body {
   align-items: center;
   justify-content: center;
   gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* ヘッダーの設定ボタン */
+.app-header {
+  position: relative;
+}
+.header-settings {
+  margin-left: auto;
+  font-size: 14px;
+}
+
+/* toolbar 複数ボタン */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 設定モーダル */
+.settings-box {
+  width: 560px;
+  max-width: 92vw;
+  text-align: left;
+  gap: 8px;
+}
+.settings-hint {
+  font-size: 13px;
+  color: #6a6a6a;
+  line-height: 1.5;
+  margin: 4px 0 8px;
+}
+.settings-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--ink);
+}
+.test-result {
+  font-size: 14px;
+  background: #f7f7f7;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 4px 0;
+}
+
+/* 新規作成ウィザード */
+.new-book-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.new-book-card h2 {
+  margin: 0;
+}
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: #6a6a6a;
+}
+.chip {
+  border: 1px solid var(--line);
+  background: #faf8f2;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.chip:hover {
+  background: #fff0e6;
+}
+.ai-status {
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.ai-status.on {
+  background: #e8f5e9;
+}
+.ai-status.off {
+  background: #fff8e1;
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--primary-dark);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 6px;
+}
+
+/* 進捗バー */
+.progress {
+  text-align: center;
+}
+.progress-bar {
+  height: 12px;
+  background: #eee;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+/* エディタのページ見出し */
+.editor-page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
 }
