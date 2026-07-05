@@ -31,6 +31,8 @@ jobs:
       - run: npm run build
 
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true # Pages が未有効でも自動で有効化する
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
