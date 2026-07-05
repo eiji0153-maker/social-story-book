@@ -36,6 +36,12 @@ export default function Settings({ initial, onClose }: Props) {
     }
   }
 
+  function handlePickModel(name: string) {
+    set("imageModel", name);
+    setModels(null); // 一覧を閉じる
+    setTestResult(`画像モデルを「${name}」に設定しました。「保存」を押してください。`);
+  }
+
   function handleSave() {
     saveSettings(s);
     onClose(s);
@@ -133,7 +139,7 @@ export default function Settings({ initial, onClose }: Props) {
                 <button
                   key={m.name}
                   className="model-item"
-                  onClick={() => set("imageModel", m.name)}
+                  onClick={() => handlePickModel(m.name)}
                   data-testid="model-item"
                   title={m.methods.join(", ")}
                 >

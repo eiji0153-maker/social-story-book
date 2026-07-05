@@ -365,8 +365,19 @@ body {
 .settings-box {
   width: 560px;
   max-width: 92vw;
+  max-height: 88vh;
+  overflow-y: auto;
   text-align: left;
   gap: 8px;
+}
+/* 保存/キャンセルを常に見える位置に固定 */
+.settings-box .preview-controls {
+  position: sticky;
+  bottom: -16px;
+  background: #fff;
+  padding: 10px 0 4px;
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
 }
 .settings-hint {
   font-size: 13px;
