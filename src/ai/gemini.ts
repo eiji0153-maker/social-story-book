@@ -106,11 +106,23 @@ export async function generateIllustrationWithGemini(
     `内容: ${illustrationPrompt}`,
   ].join("\n");
 
+  // Imagen 系モデルは :predict（別方式）、Gemini 系は :generateContent
+  if (/imagen/i.test(model)) {
+    return generateWithImagenPredict(prompt, model, apiKey);
+  }
+  return generateWithGenerateContent(prompt, model, apiKey);
+}
+
+// Gemini 画像モデル（例: gemini-2.5-flash-image）用
+async function generateWithGenerateContent(
+  prompt: string,
+  model: string,
+  apiKey: string
+): Promise<string> {
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
   };
-
   const res = await fetch(
     `${ENDPOINT}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
     {
@@ -119,10 +131,7 @@ export async function generateIllustrationWithGemini(
       body: JSON.stringify(body),
     }
   );
-
-  if (!res.ok) {
-    throw new GeminiError(await describeError(res));
-  }
+  if (!res.ok) throw new GeminiError(await describeError(res));
   const data = await res.json();
   const parts = data?.candidates?.[0]?.content?.parts ?? [];
   for (const part of parts) {
@@ -133,6 +142,59 @@ export async function generateIllustrationWithGemini(
     }
   }
   throw new GeminiError("AIから画像を取得できませんでした。");
+}
+
+// Imagen モデル（例: imagen-3.0-generate-002）用
+async function generateWithImagenPredict(
+  prompt: string,
+  model: string,
+  apiKey: string
+): Promise<string> {
+  const body = {
+    instances: [{ prompt }],
+    parameters: { sampleCount: 1, aspectRatio: "4:3" },
+  };
+  const res = await fetch(
+    `${ENDPOINT}/${encodeURIComponent(model)}:predict?key=${encodeURIComponent(apiKey)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) throw new GeminiError(await describeError(res));
+  const data = await res.json();
+  const pred = data?.predictions?.[0];
+  const b64 = pred?.bytesBase64Encoded ?? pred?.image?.imageBytes;
+  if (b64) {
+    const mime = pred?.mimeType ?? "image/png";
+    return `data:${mime};base64,${b64}`;
+  }
+  throw new GeminiError("AIから画像を取得できませんでした。");
+}
+
+export type ModelInfo = {
+  name: string; // "models/" を除いた短い名前
+  methods: string[]; // 対応メソッド
+  likelyImage: boolean; // 画像生成っぽいか
+};
+
+// 利用可能なモデル一覧を取得する（設定画面でモデル名を選ぶために使用）
+export async function listModels(apiKey: string): Promise<ModelInfo[]> {
+  const res = await fetch(
+    `${ENDPOINT}?key=${encodeURIComponent(apiKey)}&pageSize=1000`,
+    { method: "GET" }
+  );
+  if (!res.ok) throw new GeminiError(await describeError(res));
+  const data = await res.json();
+  const models: ModelInfo[] = (data?.models ?? []).map((m: any) => {
+    const name = String(m.name ?? "").replace(/^models\//, "");
+    const methods: string[] = m.supportedGenerationMethods ?? [];
+    const likelyImage =
+      /image|imagen/i.test(name) || /image/i.test(m.description ?? "");
+    return { name, methods, likelyImage };
+  });
+  return models;
 }
 
 // APIキーの疎通確認（軽い文章生成を1回投げる）

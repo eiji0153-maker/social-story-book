@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { AiSettings } from "../ai/config";
 import { saveSettings } from "../ai/config";
-import { testApiKey, GeminiError } from "../ai/gemini";
+import { testApiKey, listModels, GeminiError, type ModelInfo } from "../ai/gemini";
 
 type Props = {
   initial: AiSettings;
@@ -12,10 +12,28 @@ export default function Settings({ initial, onClose }: Props) {
   const [s, setS] = useState<AiSettings>(initial);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [models, setModels] = useState<ModelInfo[] | null>(null);
+  const [loadingModels, setLoadingModels] = useState(false);
 
   function set<K extends keyof AiSettings>(key: K, value: AiSettings[K]) {
     setS((prev) => ({ ...prev, [key]: value }));
     setTestResult(null);
+  }
+
+  async function handleListModels() {
+    setLoadingModels(true);
+    setTestResult(null);
+    try {
+      const list = await listModels(s.apiKey);
+      // 画像っぽいものを上に
+      list.sort((a, b) => Number(b.likelyImage) - Number(a.likelyImage));
+      setModels(list);
+    } catch (e) {
+      const msg = e instanceof GeminiError ? e.message : "取得に失敗しました。";
+      setTestResult("✗ " + msg);
+    } finally {
+      setLoadingModels(false);
+    }
   }
 
   function handleSave() {
@@ -94,7 +112,38 @@ export default function Settings({ initial, onClose }: Props) {
         </div>
         <p className="settings-hint">
           文章とイラストは、いずれも Gemini で生成します（イラストは色鉛筆・クレヨン風の絵本タッチ）。
+          画像モデル名でエラー（404）が出る場合は、下の「利用可能なモデルを調べる」で正しい名前を選んでください。
         </p>
+
+        <div className="model-discovery">
+          <button
+            className="btn"
+            onClick={handleListModels}
+            disabled={loadingModels || !s.apiKey.trim()}
+            data-testid="list-models"
+          >
+            {loadingModels ? "取得中…" : "利用可能なモデルを調べる"}
+          </button>
+          {models && (
+            <div className="model-list" data-testid="model-list">
+              <p className="settings-hint" style={{ margin: "6px 0" }}>
+                名前をクリックすると「画像モデル」に設定します（🎨は画像生成の可能性が高いもの）。
+              </p>
+              {models.map((m) => (
+                <button
+                  key={m.name}
+                  className="model-item"
+                  onClick={() => set("imageModel", m.name)}
+                  data-testid="model-item"
+                  title={m.methods.join(", ")}
+                >
+                  {m.likelyImage ? "🎨 " : "　"}
+                  {m.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {testResult && (
           <p className="test-result" data-testid="test-result">

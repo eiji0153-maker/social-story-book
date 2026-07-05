@@ -14,7 +14,7 @@ const KEY = "socialstory.ai.settings";
 export const DEFAULT_SETTINGS: AiSettings = {
   apiKey: "",
   textModel: "gemini-2.5-flash",
-  imageModel: "gemini-2.5-flash-image-preview",
+  imageModel: "gemini-2.5-flash-image",
   pageCount: 5,
 };
 

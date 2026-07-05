@@ -394,6 +394,37 @@ body {
   margin: 4px 0;
 }
 
+/* モデル探索 */
+.model-discovery {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.model-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.model-item {
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: monospace;
+  color: var(--ink);
+}
+.model-item:hover {
+  background: #fff0e6;
+}
+
 /* 新規作成ウィザード */
 .new-book-card {
   background: var(--card);
