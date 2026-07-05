@@ -174,6 +174,17 @@ export default function Editor({ initialBook, settings, onSave, onBack }: Props)
         </label>
       </div>
 
+      <label className="field field-text editor-afterword">
+        おうちの方へ（あとがき・PDF最終ページに掲載）
+        <textarea
+          value={book.afterword ?? ""}
+          placeholder="この絵本のねらいや、読み聞かせ後の声かけの例など。空欄の場合はPDFに掲載されません。"
+          onChange={(e) => update((b) => ({ ...b, afterword: e.target.value }))}
+          data-testid="book-afterword"
+          rows={4}
+        />
+      </label>
+
       {showPreview && (
         <Preview book={book} onClose={() => setShowPreview(false)} />
       )}

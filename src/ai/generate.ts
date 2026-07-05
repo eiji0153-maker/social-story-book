@@ -90,6 +90,7 @@ export async function generateBook(
     title: draft.title || theme || "あたらしい えほん",
     scene: theme,
     pages,
+    afterword: draft.afterword,
     createdAt: now,
     updatedAt: now,
   };

@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { Book } from "../types";
-import { renderPageToCanvas, A4_LANDSCAPE } from "../pageRender";
+import {
+  renderPageToCanvas,
+  renderAfterwordToCanvas,
+  A4_LANDSCAPE,
+} from "../pageRender";
 
 type Props = {
   book: Book;
@@ -10,17 +14,22 @@ type Props = {
 export default function Preview({ book, onClose }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [index, setIndex] = useState(0);
-  const total = book.pages.length;
+  const hasAfterword = !!(book.afterword && book.afterword.trim());
+  const total = book.pages.length + (hasAfterword ? 1 : 0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    renderPageToCanvas(book.pages[index], canvas, {
-      width: A4_LANDSCAPE.width,
-      height: A4_LANDSCAPE.height,
-      pageNumber: index + 1,
-    });
-  }, [book, index]);
+    const opts = { width: A4_LANDSCAPE.width, height: A4_LANDSCAPE.height };
+    if (hasAfterword && index === book.pages.length) {
+      renderAfterwordToCanvas(book.afterword!, canvas, opts);
+    } else {
+      renderPageToCanvas(book.pages[index], canvas, {
+        ...opts,
+        pageNumber: index + 1,
+      });
+    }
+  }, [book, index, hasAfterword]);
 
   return (
     <div className="preview-overlay" data-testid="preview">

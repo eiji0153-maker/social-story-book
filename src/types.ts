@@ -12,6 +12,7 @@ export type Book = {
   title: string;
   scene: string; // 想定場面メモ
   pages: Page[];
+  afterword?: string; // 「おうちの方へ」あとがき（AI生成時に付与）
   createdAt: number;
   updatedAt: number;
 };

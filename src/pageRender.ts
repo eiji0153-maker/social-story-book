@@ -120,6 +120,51 @@ export async function renderPageToCanvas(
   }
 }
 
+// 「おうちの方へ」あとがきページ（テキスト中心）を描画する
+export function renderAfterwordToCanvas(
+  afterword: string,
+  canvas: HTMLCanvasElement,
+  opts: RenderOptions
+): void {
+  const { width, height } = opts;
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  ctx.fillStyle = "#fffdf7";
+  ctx.fillRect(0, 0, width, height);
+
+  const pad = Math.round(width * 0.08);
+
+  // 見出し
+  const headSize = Math.round(height * 0.06);
+  ctx.fillStyle = "#f57f43";
+  ctx.font = `bold ${headSize}px "Yu Gothic UI", "Hiragino Sans", "Noto Sans JP", sans-serif`;
+  ctx.textBaseline = "top";
+  ctx.fillText("おうちの方へ", pad, pad);
+
+  // 区切り線
+  ctx.strokeStyle = "#e6e1d6";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(pad, pad + headSize * 1.5);
+  ctx.lineTo(width - pad, pad + headSize * 1.5);
+  ctx.stroke();
+
+  // 本文
+  const fontSize = Math.round(height * 0.035);
+  ctx.fillStyle = "#444444";
+  ctx.font = `${fontSize}px "Yu Gothic UI", "Hiragino Sans", "Noto Sans JP", sans-serif`;
+  const lines = wrapTextByChar(ctx, afterword || "", width - pad * 2);
+  const lineHeight = Math.round(fontSize * 1.7);
+  let ty = pad + headSize * 2.2;
+  for (const line of lines) {
+    ctx.fillText(line, pad, ty);
+    ty += lineHeight;
+    if (ty > height - pad) break;
+  }
+}
+
 function roundRect(
   ctx: CanvasRenderingContext2D,
   x: number,

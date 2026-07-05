@@ -3,7 +3,7 @@
 
 import { jsPDF } from "jspdf";
 import type { Book } from "./types";
-import { renderPageToCanvas, A4_LANDSCAPE } from "./pageRender";
+import { renderPageToCanvas, renderAfterwordToCanvas, A4_LANDSCAPE } from "./pageRender";
 
 function sanitizeFileName(name: string): string {
   const trimmed = (name || "えほん").trim() || "えほん";
@@ -26,6 +26,16 @@ export async function exportBookToPdf(book: Book): Promise<void> {
     const imgData = canvas.toDataURL("image/png");
     if (i > 0) pdf.addPage();
     pdf.addImage(imgData, "PNG", 0, 0, pageW, pageH);
+  }
+
+  // あとがき（あれば最終ページに追加）
+  if (book.afterword && book.afterword.trim()) {
+    renderAfterwordToCanvas(book.afterword, canvas, {
+      width: A4_LANDSCAPE.width,
+      height: A4_LANDSCAPE.height,
+    });
+    pdf.addPage();
+    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pageW, pageH);
   }
 
   pdf.save(`${sanitizeFileName(book.title)}.pdf`);

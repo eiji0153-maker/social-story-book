@@ -13,6 +13,7 @@ export type DraftPage = {
 export type StoryDraft = {
   title: string;
   pages: DraftPage[];
+  afterword: string; // 「おうちの方へ」あとがき
 };
 
 // ---- 文章生成（構成された絵本のたたき台をJSONで得る） ----
@@ -23,15 +24,26 @@ export async function generateStoryTextWithGemini(
   apiKey: string
 ): Promise<StoryDraft> {
   const prompt = [
-    "あなたは特別支援教育の教材づくりの専門家です。",
-    "自閉スペクトラム症などのある子ども向けの「ソーシャルストーリー」絵本を作ります。",
+    "あなたは、幼児〜小学校低学年向けの人気絵本作家です。",
+    "次のテーマで、心に残る『物語絵本』を作ってください。単なる説明や標語の羅列ではなく、主人公が登場する一つのお話にします。",
     `テーマ:「${theme}」`,
-    `ちょうど ${pageCount} ページ ぶんの絵本を作ってください。`,
-    "各ページには、次の2つを作ります。",
-    "- text: そのページの本文。ひらがな多めで、短く、やさしく、肯定的な言い方（「〜しない」より「〜しよう」）。1〜2文。",
-    "- illustration: そのページの挿絵の内容を表す、日本語の短い説明（人物・場所・様子）。",
-    "全体は「導入→場面の説明→どうすればよいか→相手の気持ち/理由→肯定的なまとめ」の流れにしてください。",
-    "titleには、その絵本のやさしいタイトルを入れてください。",
+    `ページ数: 本編を ちょうど ${pageCount} ページ にしてください。`,
+    "",
+    "【物語の作り方】",
+    "- 主人公に親しみやすい名前をつける（例: たっくん、みおちゃん など）。",
+    "- 起承転結のある一つの物語にする: 日常 → できごと・ちょっとした困りごと → 気づき → 行動・変化 → あたたかいまとめ。",
+    "- 具体的な場面・セリフ・登場人物の気持ちを描く。ものを擬人化して気持ちを表すのも効果的（例: おもちゃが「さむいよ」と言う）。",
+    "- 『〜しましょう』のような説明・命令口調の連発は避け、物語の流れの中で自然に伝える。",
+    "- 安全・思いやり・達成感など、子どもが心から『そうしたい』と思える動機を、物語を通じて感じられるようにする。",
+    "- 最後は肯定的で温かい終わり方にする。",
+    "",
+    "【各ページの作り方】",
+    "- text: そのページの本文。2〜4行の短い文でリズムよく。ひらがな中心（対象年齢に合わせ漢字は最小限）。改行は \\n で表す。",
+    "- illustration: そのページの挿絵の場面描写。登場人物・表情・動作・背景が目に浮かぶように具体的に（日本語）。物語全体で主人公の見た目が一貫するよう、特徴も書く。",
+    "",
+    "【その他】",
+    "- title: 絵本のやさしいタイトル。",
+    "- afterword: 保護者・支援者向けの『おうちの方へ』のあとがき。この絵本のねらい（例: 安全・思いやり・達成感などの視点）と、読み聞かせ後の声かけの例を、やさしい文章で200〜300字程度。",
   ].join("\n");
 
   const body = {
@@ -42,6 +54,7 @@ export async function generateStoryTextWithGemini(
         type: "OBJECT",
         properties: {
           title: { type: "STRING" },
+          afterword: { type: "STRING" },
           pages: {
             type: "ARRAY",
             items: {
@@ -54,7 +67,7 @@ export async function generateStoryTextWithGemini(
             },
           },
         },
-        required: ["title", "pages"],
+        required: ["title", "pages", "afterword"],
       },
     },
   };
@@ -74,7 +87,11 @@ export async function generateStoryTextWithGemini(
   const data = await res.json();
   const textPart = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!textPart) throw new GeminiError("AIから文章を取得できませんでした。");
-  let parsed: { title?: string; pages?: { text: string; illustration: string }[] };
+  let parsed: {
+    title?: string;
+    afterword?: string;
+    pages?: { text: string; illustration: string }[];
+  };
   try {
     parsed = JSON.parse(textPart);
   } catch {
@@ -85,7 +102,7 @@ export async function generateStoryTextWithGemini(
     illustrationPrompt: p.illustration ?? "",
   }));
   if (pages.length === 0) throw new GeminiError("AIがページを生成しませんでした。");
-  return { title: parsed.title || theme, pages };
+  return { title: parsed.title || theme, pages, afterword: parsed.afterword ?? "" };
 }
 
 // ---- 画像生成（1ページ分の挿絵を Data URL で得る） ----
