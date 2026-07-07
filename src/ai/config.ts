@@ -14,7 +14,8 @@ const KEY = "socialstory.ai.settings";
 export const DEFAULT_SETTINGS: AiSettings = {
   apiKey: "",
   textModel: "gemini-2.5-flash",
-  imageModel: "gemini-2.5-flash-image",
+  imageModel: "gemini-3.1-flash-image", // Nano Banana 2（画像生成）
+
   pageCount: 5,
 };
 
