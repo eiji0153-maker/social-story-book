@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { compressImageDataUrl } from "../imageUtil";
 
 type Props = {
   pageId: string; // ページ切替検知用
@@ -140,7 +141,10 @@ export default function DrawingCanvas({ pageId, value, onChange }: Props) {
         const dw = img.width * scale;
         const dh = img.height * scale;
         ctx.drawImage(img, (CANVAS_W - dw) / 2, (CANVAS_H - dh) / 2, dw, dh);
-        commit();
+        // 大きな写真でも localStorage に収まるよう圧縮して保存
+        compressImageDataUrl(canvasRef.current!.toDataURL("image/png")).then((d) =>
+          onChange(d)
+        );
       };
       img.src = reader.result as string;
     };

@@ -17,7 +17,16 @@ export function loadBooks(): Book[] {
 }
 
 export function saveBooks(books: Book[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+  } catch (e) {
+    if (e instanceof DOMException && /quota/i.test(e.name + e.message)) {
+      throw new Error(
+        "保存容量（約5MB）を超えました。不要な絵本を削除するか、この絵本をPDFに出力して残してください。"
+      );
+    }
+    throw e;
+  }
 }
 
 // 1冊を新規追加または上書き保存する

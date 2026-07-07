@@ -11,6 +11,7 @@ import {
   GeminiError,
 } from "./gemini";
 import { makePlaceholderImage } from "./placeholder";
+import { compressImageDataUrl } from "../imageUtil";
 
 export type Progress = {
   phase: "text" | "image" | "done";
@@ -74,6 +75,9 @@ export async function generateBook(
       imageDataUrl = makePlaceholderImage(dp.illustrationPrompt || dp.text, i);
     }
 
+    // localStorage に収まるよう縮小・圧縮して保存
+    imageDataUrl = await compressImageDataUrl(imageDataUrl);
+
     pages.push({
       id: crypto.randomUUID(),
       text: dp.text,
@@ -107,9 +111,10 @@ export async function regenerateIllustration(
       "AIキーが設定されていません。右上の「⚙ AI設定」でGemini APIキーを登録してください。"
     );
   }
-  return generateIllustrationWithGemini(
+  const dataUrl = await generateIllustrationWithGemini(
     page.illustrationPrompt || page.text,
     settings.imageModel,
     settings.apiKey
   );
+  return compressImageDataUrl(dataUrl);
 }
